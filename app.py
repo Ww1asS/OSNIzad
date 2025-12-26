@@ -48,6 +48,9 @@ optimizer = optim.SGD(model.parameters(),lr=0.01)
 
 num_epoch = 800
 
+train_losses = []
+train_accuracies = []
+
 for epoch in range(num_epoch):
     model.train()
 
@@ -64,6 +67,9 @@ for epoch in range(num_epoch):
     loss.backward()
     optimizer.step()
 
+    train_losses.append(loss.item())
+    train_accuracies.append(acc)
+
     if (epoch + 1) % 10 == 0:
         print(f'Epoch [{epoch+1}/{num_epoch}], Loss: {loss.item():.4f}, Accuracy: {acc:.4f}')
 
@@ -78,4 +84,23 @@ with torch.inference_mode():
     loss = criterion(outputs, predicted_tensor)
 
     print('\n', f'Loss: {loss.item():.4f},Accuracy: {accuracy:.4f} ')
+
+# График функции потерь
+plt.figure(figsize=(8, 4))
+plt.plot(train_losses)
+plt.xlabel("Эпоха")
+plt.ylabel("Loss")
+plt.title("График функции потерь (train)")
+plt.grid(True)
+plt.show()
+
+# Опционально: график accuracy
+plt.figure(figsize=(8, 4))
+plt.plot(train_accuracies)
+plt.xlabel("Эпоха")
+plt.ylabel("Accuracy")
+plt.title("Точность на train по эпохам")
+plt.grid(True)
+plt.show()
+
 
