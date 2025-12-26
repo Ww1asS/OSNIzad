@@ -18,7 +18,7 @@ y = iris.target # Наша цель
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-scaler = StandardScaler
+scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
@@ -35,7 +35,7 @@ class SimpleClassifier(nn.Module):
         self.layers_3 = nn.Linear(10, out_features)
 
     def forward(self,x):
-        x = self.layers_3(self.layers_2(self.layers_3(x)))
+        x = self.layers_3(self.layers_2(self.layers_1(x)))
         return x
 
 in_features = X_train.shape[1]
@@ -43,6 +43,39 @@ num_classes =  len(set(y))
 
 model = SimpleClassifier(in_features, num_classes).to(device)
 
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(model.parameters(),lr=0.01)
 
+num_epoch = 800
 
+for epoch in range(num_epoch):
+    model.train()
+
+    outputs = model(X_train_tensor)
+    loss = criterion(outputs, y_train_tensor)
+
+    _, predicted_labels = torch.max(outputs, 1)
+    correct_predictions = (predicted_labels == y_train_tensor).sum().item()
+
+    total_samples = len(y_train_tensor)
+    acc =  correct_predictions / total_samples
+
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+    if (epoch + 1) % 10 == 0:
+        print(f'Epoch [{epoch+1}/{num_epoch}], Loss: {loss.item():.4f}, Accuracy: {acc:.4f}')
+
+model.eval()
+with torch.inference_mode():
+    outputs = model(X_test_tensor)
+    _, predicted = torch.max(outputs, 1)
+
+    accuracy = accuracy_score(y_test, predicted.numpy())
+
+    predicted_tensor = predicted.clone().detach()
+    loss = criterion(outputs, predicted_tensor)
+
+    print('\n', f'Loss: {loss.item():.4f},Accuracy: {accuracy:.4f} ')
 
